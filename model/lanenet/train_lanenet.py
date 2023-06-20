@@ -47,6 +47,7 @@ def train_model(model, optimizer, scheduler, dataloaders, dataset_sizes, device,
     elif pretrained != None and ckpt == True:
         checkpoint = torch.load(pretrained)
         model.load_state_dict(checkpoint['model_state_dict'])
+        model.to(device)
         best_model_wts = copy.deepcopy(model.state_dict())
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         epoch = checkpoint['epoch']
@@ -54,6 +55,7 @@ def train_model(model, optimizer, scheduler, dataloaders, dataset_sizes, device,
     else:
         best_loss = float("inf")
         model.load_state_dict(torch.load(pretrained))
+        model.to(device)
         best_model_wts = copy.deepcopy(model.state_dict())
 
     for epoch in range(num_epochs):
