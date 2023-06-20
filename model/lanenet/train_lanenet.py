@@ -1,3 +1,5 @@
+import os
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -36,12 +38,23 @@ def compute_loss(net_output, binary_label, instance_label, loss_type = 'FocalLos
     return total_loss, binary_loss, instance_loss, out
 
 
-def train_model(model, optimizer, scheduler, dataloaders, dataset_sizes, device, loss_type = 'FocalLoss', num_epochs=25):
+def train_model(model, optimizer, scheduler, dataloaders, dataset_sizes, device, loss_type = 'FocalLoss', num_epochs=25, pretrained=None, ckpt=False, save_path=None):
     since = time.time()
     training_log = {'epoch':[], 'training_loss':[], 'val_loss':[]}
-    best_loss = float("inf")
-
-    best_model_wts = copy.deepcopy(model.state_dict())
+    if pretrained == None:
+        best_loss = float("inf")
+        best_model_wts = copy.deepcopy(model.state_dict())
+    elif pretrained != None and ckpt == True:
+        checkpoint = torch.load(pretrained)
+        model.load_state_dict(checkpoint['model_state_dict'])
+        best_model_wts = copy.deepcopy(model.state_dict())
+        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        epoch = checkpoint['epoch']
+        best_loss = checkpoint['val_loss']
+    else:
+        best_loss = float("inf")
+        model.load_state_dict(torch.load(pretrained))
+        best_model_wts = copy.deepcopy(model.state_dict())
 
     for epoch in range(num_epochs):
         training_log['epoch'].append(epoch)
@@ -103,6 +116,18 @@ def train_model(model, optimizer, scheduler, dataloaders, dataset_sizes, device,
                     best_model_wts = copy.deepcopy(model.state_dict())
 
         print()
+        #add in checkpoint save to loop here
+        if epoch % 4 == 0 and save_path != None: 
+            
+            model_save_filename = os.path.join(save_path, 'best_model_'+str(epoch)+'.pth')
+            torch.save({
+                    'epoch': epoch,
+                    'model_state_dict': model.state_dict(),
+                    'optimizer_state_dict': optimizer.state_dict(),
+                    'val_loss': epoch_loss,
+                    }, model_save_filename)
+            print("model is saved: {}".format(model_save_filename))
+
 
     time_elapsed = time.time() - since
     print('Training complete in {:.0f}m {:.0f}s'.format(

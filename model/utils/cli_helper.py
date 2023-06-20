@@ -13,6 +13,7 @@ def parse_args():
     parser.add_argument("--val", required=False, type=bool, help="Use validation", default=False)
     parser.add_argument("--lr", required=False, type=float, help="Learning rate", default=0.0001)
     parser.add_argument("--pretrained", required=False, default=None, help="pretrained model path")
+    parser.add_argument("--ckpt", required=False, type=bool, help="From checkpoint path", default=False)
     parser.add_argument("--image", default="./output", help="output image folder")
     parser.add_argument("--net", help="backbone network")
     parser.add_argument("--json", help="post processing json")

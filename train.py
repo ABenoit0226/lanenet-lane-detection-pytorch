@@ -66,15 +66,18 @@ def train():
     model = LaneNet(arch=args.model_type)
     model.to(DEVICE)
 
-    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
+    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=0.0005)
     print(f"{args.epochs} epochs {len(train_dataset)} training samples\n")
 
-    model, log = train_model(model, optimizer, scheduler=None, dataloaders=dataloaders, dataset_sizes=dataset_sizes, device=DEVICE, loss_type=args.loss_type, num_epochs=args.epochs)
+    model, log = train_model(model, optimizer, scheduler=None, dataloaders=dataloaders, dataset_sizes=dataset_sizes, device=DEVICE, loss_type=args.loss_type, num_epochs=args.epochs, pretrained=args.pretrained, ckpt=args.ckpt, save_path=save_path)
+    
+    #move into training loop in addition to end of training 
     df=pd.DataFrame({'epoch':[],'training_loss':[],'val_loss':[]})
     df['epoch'] = log['epoch']
     df['training_loss'] = log['training_loss']
     df['val_loss'] = log['val_loss']
 
+    
     train_log_save_filename = os.path.join(save_path, 'training_log.csv')
     df.to_csv(train_log_save_filename, columns=['epoch','training_loss','val_loss'], header=True,index=False,encoding='utf-8')
     print("training log is saved: {}".format(train_log_save_filename))
